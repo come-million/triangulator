@@ -37,6 +37,10 @@ def angle_cos(p0, p1, p2):
     # if max_cos < 0.1:
     #   return True
 
+def draw_str(dst, target, s):
+    x, y = target
+    cv.putText(dst, s, (x+1, y+1), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 0), thickness = 2, lineType=cv.LINE_AA)
+    cv.putText(dst, s, (x, y), cv.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255), lineType=cv.LINE_AA)
 
 if __name__ == '__main__':
     # print(__doc__)
@@ -140,7 +144,7 @@ if __name__ == '__main__':
         cv.imshow('dst', dst)
         cv.imshow('edge', cdst)
         cv.moveWindow('edge', 99, 99)
-        squares = []
+        triangles = []
         # bin=normdiff.copy()
         bin, contours, _hierarchy = cv.findContours(dst, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
         for cnt in contours:
@@ -151,25 +155,62 @@ if __name__ == '__main__':
                 # cnt = cnt.reshape(-1, 2)
                 # max_cos = np.max([angle_cos( cnt[i], cnt[(i+1) % 3], cnt[(i+2) % 3] ) for i in range(3)])
                 # if max_cos < 0.1:
-                squares.append(cnt)
-
+                triangles.append(cnt)
+        
         blobs = rgb1.copy()
         for i, c in enumerate(contours):
-            cv.drawContours( blobs, contours, i, (i*120 % 255, i * 60 % 255, 127), -1 )
-
-        cv.drawContours( blobs, squares, -1, (i*120 % 255, i * 60 % 255, 255), -1 )
+            color = ((i*200) % 255, (i * 60) % 255, 127)
+            cv.drawContours(blobs, contours, i, color, -1)
         cv.imshow('blobs', blobs)
-        cv.imwrite('blobs.png', blobs)
+
+        shapes = rgb1.copy()
+        for i, c in enumerate(triangles):
+            color = ((i*200) % 255, (i * 60) % 255, 127)
+            cv.drawContours(shapes, triangles, i, color, -1)
+        cv.imshow('shapes', shapes)
+
+        circles = rgb1.copy()
+        for i, c in enumerate(triangles):
+            color = ((i*200) % 255, (i * 60) % 255, 127)
+            # cv.drawContours( circles, contours, i, color, -1 )
+            (center, radius) = cv.minEnclosingCircle(c)
+            x, y = int(center[0]), int(center[1])
+            cv.circle(circles, (x, y), int(radius), color, 5)
+            cv.circle(circles, (x, y), int(1), color, 5)
+            draw_str(circles, (x,y), "%.2f, %.2f" % (center[0], center[1]))
+        
+        cv.imshow('circles', circles)
+
+        
+        # Python: cv2.goodFeaturesToTrack(image, maxCorners, qualityLevel, minDistance[, corners[, mask[, blockSize[, useHarrisDetector[, k]]]]]) → corners¶
+        feature_params = dict( maxCorners = 100,
+                       qualityLevel = 0.5,
+                       minDistance = 10,
+                       blockSize = 19 )
+
+        p = cv.goodFeaturesToTrack(dst, **feature_params)
+        corners = rgb1.copy()
+        if p is not None:
+            for x, y in p[:,0]:
+                cv.circle(corners, (x, y), 5, (0, 255, 0), -1)
+                # col=(x%512, 128, y%256)
+                # cv.circle(corners, (x, y), 32, col, -1)
+        cv.imshow('corners', corners)
+
+        # {image='.png', write=true, outto=[...]} use with __enter __exit__
 
         ch = cv.waitKey(5)
         if ch == 27:
+            cv.imwrite('blobs.png', blobs)
+            cv.imwrite('shapes.png', shapes)
+            cv.imwrite('circles.png', circles)
+            cv.imwrite('corners.png', corners)
             break
     cv.destroyAllWindows()
 
 
 
 # TODO:
-# - get center of mass: findContours, squares.py
 # - find corners: https://docs.opencv.org/2.4/modules/imgproc/doc/feature_detection.html?highlight=cornerharris#goodfeaturestotrack
 # - find angle: https://docs.opencv.org/2.4/modules/video/doc/motion_analysis_and_object_tracking.html#Mat%20estimateRigidTransform(InputArray%20src,%20InputArray%20dst,%20bool%20fullAffine)
 
