@@ -49,12 +49,24 @@ if __name__ == '__main__':
     # try:
     #     fn = sys.argv[1]
     # except IndexError:
-    fn1 = "in/shot_0_002.bmp"
-    fn2 = "in/shot_0_007.bmp"
+
+    # source='tile-video-480p.mov'
+    source='tileVideo.mp4'
+    cap = cv.VideoCapture(source)
+    flag, rgb1=cap.read()
+    flag, rgb2=cap.read()
+
+    cv.imshow('hey', rgb1)
+    print(rgb1.shape)
+    cv.waitKey(0)
     
-    # make dict {}
-    rgb1=cv.imread(fn1)
-    rgb2=cv.imread(fn2)
+    # fn1 = "in/shot_0_002.bmp"
+    # fn2 = "in/shot_0_007.bmp"    
+    # # make dict {}
+    # rgb1=cv.imread(fn1)
+    # rgb2=cv.imread(fn2)
+
+
     yuv1=cv.cvtColor(rgb1, cv.COLOR_BGR2YUV)
     yuv2=cv.cvtColor(rgb2, cv.COLOR_BGR2YUV)
     hsv1=cv.cvtColor(rgb1, cv.COLOR_BGR2HSV)
@@ -108,7 +120,6 @@ if __name__ == '__main__':
     cv.createTrackbar('minLineLength', 'edge', 60, 200, onChange)
     cv.createTrackbar('maxLineGap', 'edge', 20, 200, onChange)
 
-    # cap = video.create_capture(fn)
     normdiff = diff - mean
     while True:
         # flag, img = cap.read()
