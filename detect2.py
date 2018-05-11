@@ -55,10 +55,6 @@ if __name__ == '__main__':
     cap = cv.VideoCapture(source)
     flag, rgb1=cap.read()
     flag, rgb2=cap.read()
-
-    cv.imshow('hey', rgb1)
-    print(rgb1.shape)
-    cv.waitKey(0)
     
     # fn1 = "in/shot_0_002.bmp"
     # fn2 = "in/shot_0_007.bmp"    
