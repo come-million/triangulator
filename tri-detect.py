@@ -35,8 +35,8 @@ if __name__ == '__main__':
     # try:
     #     fn = sys.argv[1]
     # except IndexError:
-    fn1 = "in/shot_0_002.bmp"
-    fn2 = "in/shot_0_007.bmp"
+    fn1 = "data/shot_0_002.bmp"
+    fn2 = "data/shot_0_007.bmp"
     
     # make dict {}
     rgb1=cv.imread(fn1)

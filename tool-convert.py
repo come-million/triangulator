@@ -2,7 +2,7 @@ import cv2 as cv
 
 if __name__ == '__main__':
 
-    a=cv.imread("in/shot_0_000.bmp")
+    a=cv.imread("data/shot_0_000.bmp")
     cv.imwrite("out/shot_0_000.jpg", a)
     cv.imwrite("out/shot_0_000.png", a)
     
