@@ -24,8 +24,6 @@ import numpy as np
 import cv2 as cv
 
 
-# small = cv.pyrDown(small)
-
 if __name__ == '__main__':
     # print(__doc__)
     show=cv.imshow
@@ -38,50 +36,58 @@ if __name__ == '__main__':
     # show('img',img)
     # cv.waitKey(0)
 
-    source='tileVideo.mp4'
+    source='data/tileVideo.mp4'
     cap = cv.VideoCapture(source)
     i = -1
     while True: 
         i += 1
         flag, rgb1=cap.read()
-        f = 0.25
+
+        f = 0.125
         rgb1 = cv.resize(rgb1, (0,0), rgb1, f, f) 
+
         show('rgb1', rgb1)
         yuv1=cv.cvtColor(rgb1, cv.COLOR_BGR2YUV)
         show('yuv1', yuv1)
         hsv1=cv.cvtColor(rgb1, cv.COLOR_BGR2HSV)
         show('hsv1', hsv1)
         
-        # (h1,s1,v1)=cv.split(hsv1)
-        # show('h1',h1)
-        # show('s1',s1)
-        # show('v1',v1)
+        (h1,s1,v1)=cv.split(hsv1)
+        show('h1',h1)
+        show('s1',s1)
+        show('v1',v1)
 
-        # (y1,u1,vv1)=cv.split(yuv1)
-        # show('y1',y1)
-        # show('u1',u1)
-        # show('vv1',vv1)
+        (y1,u1,vv1)=cv.split(yuv1)
+        show('y1',y1)
+        show('u1',u1)
+        show('vv1',vv1)
 
         # h2 = h1.copy()
 
 
-        s=32
+        s=4
         patchsize = (s, s)
         
-        px = 150
-        py = 50
+        # triangle center
+        # TODO: get from tracker
+        px = 600 * f
+        py = 200 * f
         center = (px,py)
         zoom = cv.getRectSubPix(hsv1, patchsize, center)
         show('zoom', zoom)
 
-        cx=((i%sz)//s)*s
-        cy=(i%s)*s
-        zoom[:,:,1] = 255  # s
-        zoom[:,:,2] = 255  # v
+        # t = 64
+        t = sz//s
+        # t*t = total patches
+
+        ci=((i%(t*t))//t)*s
+        cj=(i%t)*s
+        # zoom[:,:,1] = 255  # s
+        # zoom[:,:,2] = 255  # v
 
         rgb_zoom=cv.cvtColor(zoom, cv.COLOR_HSV2BGR)
 
-        img[cx:cx+32, cy:cy+32, :] = rgb_zoom
+        img[ci:ci+s, cj:cj+s, :] = rgb_zoom
         show('img',img)
 
 
@@ -101,8 +107,11 @@ if __name__ == '__main__':
         # c=(mean_to_rgb[0][0][0], mean_to_rgb[0][0][1], mean_to_rgb[0][0][2])
 
         # cv.rectangle(img, (100, 100+i), (200,200+i), pix, 1)
-        ch = cv.waitKey(10)
-        if ch == 27:
-            # cv.imwrite('corners.png', corners)
-            break
+
+        display_rate = 5  # frames
+        if not i % display_rate:
+            ch = cv.waitKey(1)
+            if ch == 27:
+                # cv.imwrite('corners.png', corners)
+                break
     cv.destroyAllWindows()
