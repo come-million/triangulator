@@ -50,76 +50,69 @@ if __name__ == '__main__':
     #     fn = sys.argv[1]
     # except IndexError:
 
-    # source='tile-video-480p.mov'
-    source='tileVideo.mp4'
+    source='data/tileVideo.mp4'
     cap = cv.VideoCapture(source)
-    flag, rgb1=cap.read()
-    flag, rgb2=cap.read()
-    
-    # fn1 = "in/shot_0_002.bmp"
-    # fn2 = "in/shot_0_007.bmp"    
-    # # make dict {}
-    # rgb1=cv.imread(fn1)
-    # rgb2=cv.imread(fn2)
-
-
-    yuv1=cv.cvtColor(rgb1, cv.COLOR_BGR2YUV)
-    yuv2=cv.cvtColor(rgb2, cv.COLOR_BGR2YUV)
-    hsv1=cv.cvtColor(rgb1, cv.COLOR_BGR2HSV)
-    hsv2=cv.cvtColor(rgb2, cv.COLOR_BGR2HSV)
-
-    (h1,s1,v1)=cv.split(hsv1)
-    # show('h1',h1)
-    # show('s1',s1)
-    # show('v1',v1)
-
-    (y1,u1,vv1)=cv.split(yuv1)
-    # show('y1',y1)
-    # show('u1',u1)
-    # show('vv1',vv1)
-
-    (h2,s2,v2)=cv.split(hsv2)
-    # show('h2',h2)
-    # show('s2',s2)
-    # show('v2',v2)
-
-    (y2,u2,vv2)=cv.split(yuv2)
-    # show('y2',y2)
-    # show('u2',u2)
-    # show('vv2',vv2)
-
-    # cv.waitKey(0)
-
-    diff = cv.subtract(y1, y2)
-
-    # TODO:
-    # cv.erode()
-    # cv.dilate()
-
-    (mean, stddev) = cv.meanStdDev(diff)
-
-    dst = cv.compare(diff - mean, 3 * stddev, cv.CMP_GT)
-    cdst = cv.cvtColor(dst, cv.COLOR_GRAY2BGR)
-
-    lines = cv.HoughLinesP(dst, 1, math.pi/180.0, 40, np.array([]), 50, 10)
-    a,b,c = lines.shape
-    for i in range(a):
-        cv.line(cdst, (lines[i][0][0], lines[i][0][1]), (lines[i][0][2], lines[i][0][3]), (0, 0, 255), 3, cv.LINE_AA)
 
     # process loop
     def onChange(*arg):
         pass
-    cv.namedWindow('edge')
-
-    cv.createTrackbar('stddev_div_1000', 'edge', 4000, 6000, onChange)
+    
+    cv.namedWindow('thresh')
+    cv.createTrackbar('stddev_div_1000', 'thresh', 4000, 6000, onChange)
+    
+    cv.namedWindow('edge')    
     cv.createTrackbar('threshold', 'edge', 110, 200, onChange)
     cv.createTrackbar('minLineLength', 'edge', 60, 200, onChange)
     cv.createTrackbar('maxLineGap', 'edge', 20, 200, onChange)
 
-    normdiff = diff - mean
-    while True:
-        # flag, img = cap.read()
+
+    # fn1 = "data/shot_0_002.bmp"
+    # fn2 = "data/shot_0_007.bmp"    
+    # # make dict {}
+    # rgb1=cv.imread(fn1)
+    # rgb2=cv.imread(fn2)
+
+    while True: 
+        # reading two frames 1,2  3,4  5,6  etc
+        flag, rgb1=cap.read()
+        flag, rgb2=cap.read()
         # gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        # f = 0.5
+        # rgb1 = cv.resize(rgb1, (0,0),rgb1, f, f) 
+        # rgb2 = cv.resize(rgb2, (0,0),rgb2, f, f) 
+
+
+        yuv1=cv.cvtColor(rgb1, cv.COLOR_BGR2YUV)
+        hsv1=cv.cvtColor(rgb1, cv.COLOR_BGR2HSV)
+        (h1,s1,v1)=cv.split(hsv1)
+        # show('h1',h1)
+        # show('s1',s1)
+        # show('v1',v1)
+
+        (y1,u1,vv1)=cv.split(yuv1)
+        # show('y1',y1)
+        # show('u1',u1)
+        # show('vv1',vv1)
+
+        yuv2=cv.cvtColor(rgb2, cv.COLOR_BGR2YUV)
+        hsv2=cv.cvtColor(rgb2, cv.COLOR_BGR2HSV)
+        (h2,s2,v2)=cv.split(hsv2)
+        # show('h2',h2)
+        # show('s2',s2)
+        # show('v2',v2)
+
+        (y2,u2,vv2)=cv.split(yuv2)
+        # show('y2',y2)
+        # show('u2',u2)
+        # show('vv2',vv2)
+
+        # cv.waitKey(0)
+
+        diff = cv.subtract(y1, y2)
+
+        # TODO:
+        # cv.erode()
+        # cv.dilate()
 
         # edge = cv.Canny(src, thrs1, thrs2, apertureSize=7)
         # vis = cv.cvtColor(src, cv.COLOR_GRAY2BGR)
@@ -127,11 +120,10 @@ if __name__ == '__main__':
         # vis[edge != 0] = (0, 255, 0)
         # cv.imshow('edge', vis)
         
-        stddev_div_1000 = cv.getTrackbarPos('stddev_div_1000', 'edge')
-        
         (mean, stddev) = cv.meanStdDev(diff)
-        dst = cv.compare(normdiff, (stddev_div_1000 / 1000.0) * stddev, cv.CMP_GT)
-        cdst = rgb1.copy()
+        stddev_div_1000 = cv.getTrackbarPos('stddev_div_1000', 'thresh')
+        dst = cv.compare(diff - mean, (stddev_div_1000 / 1000.0) * stddev, cv.CMP_GT)
+        
 
         rho = 1
         theta = math.pi/180.0
@@ -143,10 +135,13 @@ if __name__ == '__main__':
         # maxLineGap = 10
         maxLineGap = cv.getTrackbarPos('maxLineGap', 'edge')
 
+        cdst = rgb1.copy()
         lines = cv.HoughLinesP(dst, rho, theta, threshold, lines, minLineLength, maxLineGap)
-        a,b,c = lines.shape
-        for i in range(a):
-            cv.line(cdst, (lines[i][0][0], lines[i][0][1]), (lines[i][0][2], lines[i][0][3]), (0, 0, 255), 3, cv.LINE_AA)
+        # a,b,c = lines.shape
+        # for i in range(a):
+        # if lines: 
+        for line in lines:
+            cv.line(cdst, (line[0][0], line[0][1]), (line[0][2], line[0][3]), (0, 0, 255), 3, cv.LINE_AA)
         
         cv.imshow('dst', dst)
         cv.imshow('edge', cdst)
@@ -206,7 +201,7 @@ if __name__ == '__main__':
 
         # {image='.png', write=true, outto=[...]} use with __enter __exit__
 
-        ch = cv.waitKey(5)
+        ch = cv.waitKey(10)
         if ch == 27:
             cv.imwrite('blobs.png', blobs)
             cv.imwrite('shapes.png', shapes)
