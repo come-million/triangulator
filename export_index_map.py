@@ -78,6 +78,8 @@ if __name__ == '__main__':
     cv.imwrite('blobs.png', blobs)
     cv.imwrite('index_map.png', index_map)
             
+    cv.imwrite('rgb.png', rgb1)
+            
     cv.waitKey(0)
 
     cv.destroyAllWindows()
